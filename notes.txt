@@ -1,0 +1,19 @@
+# Observations
+
+## Random Move Choice
+
+  + After 500,000 games of random vs random the following outcome proportions were achieved:
+    * Player One Victory:       0.3833
+    * Player Two Victory:       0.3594
+    * Stalemate:                0.2573
+
+    This took ~33 minutes to run
+
+    Some modifications to the code, somehow seemed to change the balance of the game.
+    After these changes the following outcome proportions were achieved (1,000,000 games):
+
+    * Player One Victory:       0.5556
+    * Player Two Victory:       0.4417
+    * Stalemate:                0.0026
+
+    This took ~10 minutes to run
