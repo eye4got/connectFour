@@ -19,6 +19,7 @@ class GameBoard:
         self.player_one_moves : List[int] = []
         self.player_two_moves : List[int] = []
         self.row_heights : List[int] = [0] * GameBoard.board_cols
+
         # Legal moves is stored as its own variable to avoid unnecessary duplicate calculations
         self.legal_moves = list(range(1, GameBoard.board_cols + 1))
         self.victor : Union[None, int] = None
@@ -27,7 +28,7 @@ class GameBoard:
     def __repr__(self) -> str:
         output_board = np.flip(self.board, axis = 0)
         #TODO: remove 0s
-        return str(output_board)
+        return '\n' + str(output_board)
 
 
     def add_piece(self, column: int):
@@ -105,7 +106,7 @@ class GameBoard:
 
         # Vector indicates the positive direction of the line being checked
         # First check positive direction
-        consec_tokens = self.check_dir_for_tokens(coords, token, vector, 0)
+        consec_tokens = self.check_direction_for_tokens(coords, token, vector, 0)
 
         # Then change vector direction to negative and check
         # No need to check upward vertical (Reduced time by 7% when tested on 300,000 games)
