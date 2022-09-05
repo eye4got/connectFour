@@ -19,7 +19,7 @@ class GameBoard:
         self.player_one_moves : List[int] = []
         self.player_two_moves : List[int] = []
         self.row_heights : List[int] = [0] * GameBoard.board_cols
-        # Legal moves is stored as it's own variable to avoid unnecessary duplicate calculations
+        # Legal moves is stored as its own variable to avoid unnecessary duplicate calculations
         self.legal_moves = list(range(1, GameBoard.board_cols + 1))
         self.victor : Union[None, int] = None
         self.victory_direction : str = ""

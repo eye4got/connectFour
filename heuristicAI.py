@@ -53,8 +53,8 @@ class HeuristicAI:
 
         # Then change vector direction to negative and check
         if vector != (-1, 0):
-        vector = (vector[0] * -1, vector[1] * -1)
-        consec_tokens = self.check_dir_for_tokens(coords, token, vector, consec_tokens)
+            vector = (vector[0] * -1, vector[1] * -1)
+            consec_tokens = self.check_dir_for_tokens(coords, token, vector, consec_tokens)
 
         return consec_tokens == 3
 

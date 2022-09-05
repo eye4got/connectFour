@@ -14,7 +14,6 @@ from gameBoard import GameBoard
 
 # TODO: benchmarking to improve performance
 # TODO: unit tests
-# TODO: setup Git
 
 def run_simulation(player_one_move: Callable[[GameBoard], int], player_two_move: Callable[[GameBoard], int]) -> GameBoard:
 
