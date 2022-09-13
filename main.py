@@ -1,7 +1,8 @@
 import cProfile
 import pstats
 import random
-from typing import Callable, Union, Optional
+from typing import Callable, List
+import numpy.typing as npt
 import logging
 from heuristicAI import HeuristicAI
 
@@ -23,17 +24,15 @@ def run_simulation(player_one_move: Callable, player_two_move: Callable) -> Game
         board.add_piece(player_one_move(board.board, board.legal_moves, board.row_heights))
 
         if not board.is_complete:
-            board.add_piece(player_two_move(board))
+            board.add_piece(player_two_move(board.board, board.legal_moves, board.row_heights))
 
     return board
 
 player_one = HeuristicAI(player_num=1)
+player_two = HeuristicAI(player_num=2)
 
-def player_two_move_choice(board: GameBoard):
-
-    move = choice(board.legal_moves)
-
-    return move
+def random_move(board: npt.ArrayLike, legal_moves: List[int], row_heights: List[int]):
+    return choice(legal_moves)
 
 num_sims = 1000000
 stalemates = 0
@@ -43,7 +42,7 @@ player_wins = [0, 0]
 with cProfile.Profile() as pr:
     for ii in range(num_sims):
         logging.info(f"\n\nStart Game: {ii + 1}  " + "*" * 30)
-        curr_board = run_simulation(player_one.choose_move, player_two_move_choice)
+        curr_board = run_simulation(player_one.choose_move, player_two.choose_move)
 
         if curr_board.victor is None:
             stalemates += 1
