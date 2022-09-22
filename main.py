@@ -1,20 +1,23 @@
 import cProfile
 import pstats
 import random
+import os
 from typing import Callable, List
 import numpy.typing as npt
 import logging
+from datetime import datetime
 from heuristicAI import HeuristicAI
 
 from random import choice
 
-logging.basicConfig(filename = "results.log",
-                    level = logging.INFO,
+# Generate once to align performance profile and logs, then format appropriately
+curr_dt = datetime.now().strftime("%Y_%m_%d %H-%M")
+
+logging.basicConfig(filename = os.path.join('logging', f'{curr_dt}_results.log'),
+                    level = logging.WARNING,
                     format = "%(asctime)s %(message)s")
 
 from gameBoard import GameBoard
-
-# TODO: unit tests
 
 def run_simulation(player_one_move: Callable, player_two_move: Callable) -> GameBoard:
 
@@ -42,7 +45,7 @@ player_wins = [0, 0]
 with cProfile.Profile() as pr:
     for ii in range(num_sims):
         logging.info(f"\n\nStart Game: {ii + 1}  " + "*" * 30)
-        curr_board = run_simulation(player_one.choose_move, player_two.choose_move)
+        curr_board = run_simulation(player_one.choose_move,  player_two.choose_move)
 
         if curr_board.victor is None:
             stalemates += 1
@@ -57,7 +60,7 @@ with cProfile.Profile() as pr:
             print(f"Stalemates: {stalemates}\n")
 
 stats = pstats.Stats(pr)
-stats.dump_stats(filename="performance_profile.prof")
+stats.dump_stats(filename=os.path.join('logging', f'{curr_dt}_performance_profile.prof'))
 
 print(f"Player One Wins: {player_wins[0]}")
 print(f"Player Two Wins: {player_wins[1]}")

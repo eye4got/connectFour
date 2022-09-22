@@ -35,7 +35,7 @@ class GameBoard:
 
         # Check if desired move is legal
         if column < 1 or column > self.board_cols:
-            raise ValueError(f"Piece insertion column must be between 1 and 7, {column} is incorrect")
+            raise ValueError(f"Piece insertion column must be between 1 and {self.board_cols}, {column} is incorrect")
 
         col_idx = column - 1 # Indexes refer to array position, while standard value uses 1-based counting
         if self.row_heights[col_idx] == self.board_rows:

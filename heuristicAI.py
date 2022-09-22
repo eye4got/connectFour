@@ -11,7 +11,7 @@ class HeuristicAI:
             raise ValueError("Player Number must be 1 or 2")
 
         self.player_num = player_num
-        self.opponent_num = 1 if player_num == 2 else 1
+        self.opponent_num = 2 if player_num == 1 else 1
 
         # Player needs to know dimensions of board
         # Players that use NNs will only be able to play with specific board dimensions anyway
@@ -21,9 +21,12 @@ class HeuristicAI:
 
     def choose_move(self, board: npt.ArrayLike, legal_moves: List[int], row_heights: List[int]):
 
+        # Check moves closest to centre first, which biases towards picking more central moves
+        legal_moves = sorted(legal_moves, key=lambda x: abs((self.board_cols + 1) / 2 - x))
+
         curr_legal_move = 0
-        col_of_highest_consec_move = random.choice(legal_moves) # Random seed for starting move
-        highest_consec_count = 0
+        col_of_highest_consec_move = legal_moves[0] # Prioritise middle if there is no obvious alternative
+        highest_consec_count = -1
         col_of_blocking_move = 0
         found_winning_move = False
 
@@ -36,22 +39,28 @@ class HeuristicAI:
             coords = (row_heights[col_idx], col_idx)
 
             # Check the number of contiguous pieces that would be achieved by playing the current legal move
-            curr_col_count = self.check_slot_for_consec_tokens(board, coords, self.player_num)
-            logging.debug(f"Consec count: {curr_col_count} for col: {col_idx}")
+            curr_col_count = self._check_slot_for_consec_tokens(board, coords, self.player_num)
+            logging.debug(f"Consec count: {curr_col_count} for col: {curr_col}")
 
             # Check if it's a winning move or at least better than the previous best move
-            # The greater than comparison preferences moves to the left, perhaps this should be changed to preference
-            # centre moves?
             if curr_col_count == 3:
                 found_winning_move = True
+
             elif curr_col_count > highest_consec_count:
-                col_of_highest_consec_move = curr_col
-                highest_consec_count = curr_col_count
+                # Only update "best" move for round if it doesn't enable an opponents move which is even better than it
+                slot_above = (row_heights[col_idx] + 1, col_idx)
+                opponent_opportunity = self._check_slot_for_consec_tokens(board, slot_above, self.opponent_num)
+                logging.debug(f"\tOpponent Consec count: {opponent_opportunity}")
+
+                if opponent_opportunity <= curr_col_count:
+                    col_of_highest_consec_move = curr_col
+                    highest_consec_count = curr_col_count
 
             # If you haven't found a winning move or a blocking move (default value of 0), check for blocking move
             if not found_winning_move and col_of_blocking_move == 0:
-                curr_block_col = self.check_slot_for_consec_tokens(board, coords, self.opponent_num)
-                if curr_block_col == 3:
+                block_col_count = self._check_slot_for_consec_tokens(board, coords, self.opponent_num)
+                logging.debug(f'\tBlocking count: {block_col_count}')
+                if block_col_count == 3:
                     col_of_blocking_move = curr_col
                     logging.info(f"Found blocking move: {curr_col}")
 
@@ -68,7 +77,7 @@ class HeuristicAI:
         return move
 
 
-    def check_slot_for_consec_tokens(self, board: npt.ArrayLike, coords: Tuple[int, int], token : int) -> int:
+    def _check_slot_for_consec_tokens(self, board: npt.ArrayLike, coords: Tuple[int, int], token : int) -> int:
         """
         Determines the number of tokens of the current player lined up with the specified slot before anything is placed
 
@@ -86,7 +95,7 @@ class HeuristicAI:
         while max_consec_tokens < 3 and vec_num < len(vectors):
             vector = vectors[vec_num]
             # Check if current vector has more tokens than previous, and if so, store the count
-            max_consec_tokens = max(max_consec_tokens, self.check_line_for_consec_tokens(board, coords, token, vector))
+            max_consec_tokens = max(max_consec_tokens, self._check_line_for_consec_tokens(board, coords, token, vector))
 
             if max_consec_tokens != 3:
                 vec_num += 1
@@ -94,21 +103,21 @@ class HeuristicAI:
         return max_consec_tokens
 
 
-    def check_line_for_consec_tokens(self, board: npt.ArrayLike, coords: Tuple[int, int], token : int, vector: Tuple[int, int]) -> int:
+    def _check_line_for_consec_tokens(self, board: npt.ArrayLike, coords: Tuple[int, int], token : int, vector: Tuple[int, int]) -> int:
 
         # Vector indicates the positive direction of the line being checked
         # First check positive direction
-        consec_tokens = self.check_dir_for_tokens(board, coords, token, vector, 0)
+        consec_tokens = self._check_dir_for_tokens(board, coords, token, vector, 0)
 
         # Then change vector direction to negative and check
         if vector != (-1, 0):
             vector = (vector[0] * -1, vector[1] * -1)
-            consec_tokens = self.check_dir_for_tokens(board, coords, token, vector, consec_tokens)
+            consec_tokens = self._check_dir_for_tokens(board, coords, token, vector, consec_tokens)
 
         return consec_tokens
 
 
-    def check_dir_for_tokens(self, board: npt.ArrayLike, coords: Tuple[int, int], token : int, vector: Tuple[int, int], consec_tokens : int) -> int:
+    def _check_dir_for_tokens(self, board: npt.ArrayLike, coords: Tuple[int, int], token : int, vector: Tuple[int, int], consec_tokens : int) -> int:
 
         """
         Checks the number of tokens belonging to a player in a specific direction (one of eight) until it hits blanks,
@@ -130,10 +139,10 @@ class HeuristicAI:
         while not dir_bounded and consec_tokens < 3:
             curr_coords = (curr_coords[0] + vector[0], curr_coords[1] + vector[1])
 
-            row_coord_is_illegal = curr_coords[0] > (self.board_rows - 1) or curr_coords[0] < 0
-            col_coord_is_illegal = curr_coords[1] > (self.board_cols - 1) or curr_coords[1] < 0
+            row_coord_is_illegal = curr_coords[0] >= (self.board_rows) or curr_coords[0] < 0
+            col_coord_is_illegal = curr_coords[1] >= (self.board_cols) or curr_coords[1] < 0
 
-            if row_coord_is_illegal or col_coord_is_illegal or board[curr_coords[0]][curr_coords[1]] != token:
+            if row_coord_is_illegal or col_coord_is_illegal or board[curr_coords] != token:
                 dir_bounded = True
 
             else:

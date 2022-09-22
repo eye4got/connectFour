@@ -22,16 +22,16 @@
     After 1,000,000 Games in both cases (~15min)
 
     Random Moves Goes First:
-    * Heuristics with Blocking: 0.9855
-    * Random Moves:             0.0143
-    * Stalemate:                0.000245
+    * Heuristics with Blocking: 0.9954
+    * Random Moves:             0.0046
+    * Stalemate:                0.000017
 
     Heuristics Strategy Goes First:
-    * Heuristics with Blocking: 0.9473
-    * Random Moves:             0.0527
-    * Stalemate:                0.000002
+    * Heuristics with Blocking: 0.9999
+    * Random Moves:             0.0001
+    * Stalemate:                0.000003
 
     Heuristics Strategy Against Itself:
-    * Player One Victory:       0.2775
-    * Player Two Victory:       0.7225
+    * Player One Victory:       1
+    * Player Two Victory:       0
     * Stalemate:                0
